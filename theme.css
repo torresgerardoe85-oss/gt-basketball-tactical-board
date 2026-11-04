@@ -75,3 +75,78 @@ body.compact .workspace{grid-template-columns:minmax(0,1fr) 195px}
 .brandlogo{width:76px;height:76px;filter:drop-shadow(0 4px 12px #000a)}
 @media(max-width:1050px){.brandlogo{width:57px;height:57px}}
 @media(max-height:550px) and (min-width:721px){.brandlogo{width:46px;height:46px}}
+
+
+/* v3 · Native-feeling full-screen tablet UI. Header stays compact, the court takes the screen. */
+:root{--appbar-height:calc(66px + env(safe-area-inset-top,0px))}
+html,body{height:100%;min-height:100%;width:100%;overflow:hidden;overscroll-behavior:none}
+body{height:100dvh;display:flex;flex-direction:column;position:relative;-webkit-tap-highlight-color:transparent}
+header{flex:0 0 var(--appbar-height);width:100%;height:var(--appbar-height);min-height:0;max-height:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;padding:calc(5px + env(safe-area-inset-top,0px)) 11px 5px;border-bottom:2px solid #f28b2b;box-shadow:0 2px 15px #0008;z-index:10}
+.brandbrand{min-width:0;gap:8px}
+.brandlogo{width:48px;height:48px;flex:none}
+.brand{font-size:15px;letter-spacing:.045em;white-space:nowrap}
+.brand small{font-size:8px;letter-spacing:.12em;margin-top:3px}
+.topcontrols{display:flex;flex-flow:row nowrap;justify-content:flex-start;align-items:center;gap:6px;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;padding:2px 1px}
+.topcontrols::-webkit-scrollbar{display:none}
+.topcontrols button{height:42px;min-height:42px;flex:none;white-space:nowrap;font-size:12px;font-weight:800;padding:7px 10px;border-radius:9px;scroll-snap-align:start}
+.topcontrols #undo,.topcontrols #redo{font-size:22px;min-width:43px;padding:4px 10px}
+#showall.visible-toggle{font-size:12px;padding:7px 10px}
+.offline-chip{flex:none;max-width:135px;min-width:83px;font-size:10px;line-height:1.25;color:#a2e7d0;border:1px solid #3b8e83;background:#123c3d;padding:7px 8px;border-radius:10px;text-align:center;font-weight:800}
+.offline-chip.is-offline{background:#28401f;border-color:#95c764;color:#c8f1a7}
+.workspace{flex:1 1 auto;display:flex;flex-direction:column;grid-template-columns:none;width:100%;height:auto;min-height:0;margin:0;padding:7px 7px max(7px,env(safe-area-inset-bottom,0px));gap:0;overflow:hidden}
+.boardwrap{flex:1 1 auto;width:100%;height:100%;min-width:0;min-height:0;max-height:none;aspect-ratio:auto;border-radius:15px;border:3px solid #25415e;box-shadow:0 7px 25px #0007}
+.board{display:block;width:100%;height:100%;max-width:100%;max-height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.boardwrap::after{border-radius:12px}
+.sidebar{position:fixed;z-index:50;right:10px;top:calc(var(--appbar-height) + 9px);bottom:max(8px,env(safe-area-inset-bottom,0px));width:min(358px,calc(100vw - 20px));height:auto;max-height:none;min-height:0;overflow-y:auto;overflow-x:hidden;display:block;grid-template-columns:none;border:1px solid #57a5d4;box-shadow:-12px 14px 36px #000b;padding:15px 15px 18px;border-radius:16px}
+body:not(.panel-open) .sidebar{display:none!important}
+body.panel-open .sidebar{display:block}
+.panelheading{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:3px 3px 12px;color:#f9fbff;font-size:16px}
+.panelheading button{font-size:17px;min-width:40px;min-height:38px}
+.sidebar .section{padding-bottom:13px;margin-bottom:13px}
+.sidebar button{min-height:38px}
+.sidebar .tools{display:flex;flex-wrap:wrap}
+.sidebar .tools button{padding:9px 10px}
+.sidebar .surface-toggle{gap:7px}
+.sidebar .colors{gap:12px}
+#installHelp[hidden],#exitfocus[hidden]{display:none!important}
+.install-help{margin-top:12px;padding:12px;border-radius:12px;border:1px solid #5d99bb;background:#0b2d4a;color:#d8edff;line-height:1.4;font-size:12px}
+.install-help p{margin:7px 0}
+.exit-focus{position:absolute;z-index:40;right:max(12px,env(safe-area-inset-right,0px));top:max(12px,env(safe-area-inset-top,0px));padding:9px 13px;font-size:13px;background:#0a2549ec;box-shadow:0 4px 20px #0009;border:1px solid #7fd8ff}
+body.presentation header{display:none}
+body.presentation .workspace{height:100dvh;flex:1 1 auto;padding:0;background:#0a1623}
+body.presentation .boardwrap{border:0;border-radius:0}
+body.presentation .boardwrap::after{display:none}
+body.presentation .sidebar{display:none!important}
+body.presentation .courtlabel{display:none}
+body.presentation #exitfocus{display:block}
+body.presentation{background:#0a1623}
+@media(max-width:1100px){
+ header{gap:5px;padding-left:7px;padding-right:7px}
+ .brandlogo{width:40px;height:40px}
+ .brand{font-size:12px}
+ .brand small{font-size:7px}
+ .topcontrols button{height:40px;min-height:40px;font-size:11px;padding:7px 9px}
+ .offline-chip{max-width:91px;min-width:72px;font-size:9px}
+}
+@media(max-width:720px){
+ header{display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px;flex-wrap:nowrap;height:var(--appbar-height);min-height:0}
+ .offline-chip{display:none}
+ .workspace{display:flex;height:auto;min-height:0;gap:0;padding:5px}
+ .boardwrap{flex:1;aspect-ratio:auto;max-height:none;min-height:0;height:100%;width:100%}
+ .sidebar{display:block;width:min(348px,calc(100vw - 16px));padding:13px;top:calc(var(--appbar-height) + 5px);right:6px;bottom:6px;overflow:auto}
+ .section{margin-bottom:12px;padding-bottom:12px}
+ .topcontrols{flex-wrap:nowrap;justify-content:flex-start}
+ .brandlogo{width:36px;height:36px}
+ .brand{font-size:11px}
+ .brand small{display:none}
+ .topcontrols button{font-size:11px}
+}
+@media(max-width:420px){.sidebar{display:block;grid-template-columns:none}.boardwrap{max-height:none}}
+@media(max-height:550px) and (min-width:721px){
+ :root{--appbar-height:calc(54px + env(safe-area-inset-top,0px))}
+ .brandlogo{width:38px;height:38px}
+ .brand{font-size:12px}
+ .topcontrols button{height:38px;min-height:38px}
+ .workspace{height:auto;min-height:0;padding:4px}
+ .sidebar{top:calc(var(--appbar-height) + 4px);max-height:calc(100dvh - var(--appbar-height) - 8px)}
+}
