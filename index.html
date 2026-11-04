@@ -101,7 +101,7 @@ function courtArt(){
 }
 function draw(){drawings.replaceChildren();for(const s of strokes){let p=el('polyline',{points:s.points.map(p=>p.join(',')).join(' '),stroke:s.color,'stroke-width':s.width,class:'mark'},drawings)}}
 function renderPieces(){piecesEl.replaceChildren();if(!mode)return;for(const p of pieces){if(!visibility[p.team])continue;let g=el('g',{class:'piece'+(p.team==='ball'?' ball':''),'data-id':p.id,transform:'translate('+p.x+','+p.y+')'},piecesEl);el('circle',{r:p.team==='ball'?13:22,fill:p.team==='o'?'#1764d6':p.team==='d'?'#d72b3d':'#e88732'},g);if(p.team==='ball'){el('path',{d:'M-11 0H11 M0 -12Q9 0 0 12 M0 -12Q-9 0 0 12',stroke:'#57341b','stroke-width':1.8,fill:'none'},g)}else{let t=el('text',{x:0,y:1},g);t.textContent=p.n}}}
-function sync(){courtArt();draw();renderPieces();$('boardwrap').dataset.surface=skin;for(const [id,pressed] of [['surfaceWood',skin==='wood'],['surfaceWhite',skin==='white'],['showo',visibility.o],['showd',visibility.d],['showball',visibility.ball],['showall',visibility.o&&visibility.d&&visibility.ball]]){const b=$(id);b.classList.toggle('active',pressed);b.setAttribute('aria-pressed',String(pressed))}$('mode').textContent=mode?'● Con fichas':'✎ Solo marcador';$('mode').classList.toggle('active',mode);$('view').textContent=half?'Cancha completa':'Media cancha';$('drawlock').textContent=locked?'🔒 Dibujo bloqueado':'🔓 Dibujo activo';$('drawlock').classList.toggle('active',locked)}
+function sync(){courtArt();draw();renderPieces();$('boardwrap').dataset.surface=skin;$('showall').textContent=(visibility.o&&visibility.d&&visibility.ball)?'Ocultar fichas':'Mostrar fichas';for(const [id,pressed] of [['surfaceWood',skin==='wood'],['surfaceWhite',skin==='white'],['showo',visibility.o],['showd',visibility.d],['showball',visibility.ball],['showall',visibility.o&&visibility.d&&visibility.ball]]){const b=$(id);b.classList.toggle('active',pressed);b.setAttribute('aria-pressed',String(pressed))}$('mode').textContent=mode?'● Con fichas':'✎ Solo marcador';$('mode').classList.toggle('active',mode);$('view').textContent=half?'Cancha completa':'Media cancha';$('drawlock').textContent=locked?'🔒 Dibujo bloqueado':'🔓 Dibujo activo';$('drawlock').classList.toggle('active',locked)}
 function pos(e){const point=court.createSVGPoint();point.x=e.clientX;point.y=e.clientY;const m=court.getScreenCTM();if(!m)return [500,280];const q=point.matrixTransform(m.inverse());return [Math.max(30,Math.min(970,q.x)),Math.max(30,Math.min(530,q.y))]}
 function nearStroke(x,y,s){for(const p of s.points){if(Math.hypot(p[0]-x,p[1]-y)<18)return true}return false}
 court.addEventListener('pointerdown',e=>{if(e.button!==0&&e.pointerType==='mouse')return;e.preventDefault();const g=e.target.closest('.piece');const [x,y]=pos(e);if(g&&mode){checkpoint();selected=pieces.find(p=>p.id===g.getAttribute('data-id'));active={type:'piece'};court.setPointerCapture(e.pointerId);return}if(locked)return;if(tool==='eraser'){let idx=strokes.findLastIndex(s=>nearStroke(x,y,s));if(idx>=0){checkpoint();strokes.splice(idx,1);draw();persist()}return}checkpoint();active={type:'draw',points:[[x,y]],color,width};court.setPointerCapture(e.pointerId)});
@@ -150,21 +150,31 @@ $('backupFile').onchange=async(e)=>{
     const data=JSON.parse(await file.text());
     if(data.type!=='alespi-tactical-backup'||!data.plays||typeof data.plays!=='object'||Array.isArray(data.plays))throw Error('Formato inválido');
     if(!confirm('¿Restaurar el respaldo? Esto reemplazará las jugadas guardadas en este dispositivo.'))return;
+    if(data.current){const parsed=JSON.parse(data.current);if(!Array.isArray(parsed.strokes)||!Array.isArray(parsed.pieces))throw Error('Datos de pizarra inválidos')}
     localStorage.setItem('gt-board-plays',JSON.stringify(data.plays));
-    if(data.current){const parsed=JSON.parse(data.current);if(!Array.isArray(parsed.strokes)||!Array.isArray(parsed.pieces))throw Error('Datos de pizarra inválidos');restore(data.current)}
+    if(data.current)restore(data.current)
     notify('Respaldo importado correctamente.');
   }catch(e){notify('No se pudo importar: archivo inválido o almacenamiento lleno')}
   finally{e.target.value=''}
 };
-function updateConnection(){const b=$('offlineState');b.classList.toggle('is-offline',!navigator.onLine);b.textContent=navigator.onLine?'Preparando uso sin internet…':'● Sin conexión'}
+let offlineReady=false;
+function updateConnection(){
+  const b=$('offlineState');b.classList.toggle('is-offline',!navigator.onLine);
+  b.textContent=offlineReady?(navigator.onLine?'✓ Lista sin internet':'✓ Abierta sin internet'):(navigator.onLine?'Preparando uso offline…':'⚠ Sin conexión');
+}
+async function checkOffline(){
+  try{
+    const cache=await caches.open('alespi-tactical-v3');
+    offlineReady=!!(await cache.match('./index.html'))&&!!(await cache.match('./theme.css'))&&!!(await cache.match('./manifest.webmanifest'));
+  }catch(e){offlineReady=false}
+  updateConnection();
+}
 window.addEventListener('online',updateConnection);
 window.addEventListener('offline',updateConnection);
 updateConnection();
-if('serviceWorker' in navigator){
- navigator.serviceWorker.ready.then(async()=>{
-   let ready=false;try{const cache=await caches.open('alespi-tactical-v3');ready=!!(await cache.match('./index.html'))&&!!(await cache.match('./theme.css'))}catch(e){}
-   const b=$('offlineState');b.textContent=ready?(navigator.onLine?'✓ Disponible sin internet':'✓ Funcionando sin internet'):'Sin conexión verificada';
- }).catch(()=>{$('offlineState').textContent='Instala la app para uso offline'});
+if('serviceWorker'in navigator){
+ navigator.serviceWorker.ready.then(checkOffline).catch(()=>{$('offlineState').textContent='No se pudo activar el uso offline'});
+ navigator.serviceWorker.addEventListener('controllerchange',checkOffline);
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persist()});
 window.addEventListener('pagehide',persist);
