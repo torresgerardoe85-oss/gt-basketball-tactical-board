@@ -59,3 +59,19 @@ body.compact .workspace{grid-template-columns:minmax(0,1fr) 195px}
 @media(max-width:720px){header{flex-wrap:wrap;gap:7px}.workspace{display:flex;flex-direction:column;height:auto;min-height:calc(100dvh - 90px);padding:7px}.boardwrap{aspect-ratio:1000/560;min-height:0;max-height:61dvh;width:100%;flex:none}.sidebar{overflow:visible;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px}.section{margin:0;padding:0 4px 10px}.sidebar h2{font-size:10px}.brandlogo{width:44px;height:44px}.brand{font-size:15px}.brand small{font-size:8px}.topcontrols{flex:1;justify-content:flex-end}.topcontrols button{padding:7px;font-size:11px}.hint{font-size:11px}}
 @media(max-width:420px){.sidebar{grid-template-columns:1fr}.topcontrols{justify-content:flex-start}.boardwrap{max-height:48dvh}}
 @media(max-height:550px) and (min-width:721px){header{min-height:54px;padding:4px 10px}.brandlogo{height:42px;width:42px}.workspace{height:calc(100dvh - 54px);padding:7px;gap:7px}.sidebar{padding:9px}.section{margin-bottom:8px;padding-bottom:8px}.sidebar h2{margin:2px 0 6px}.surface-sample{height:13px}.surface-toggle button{padding:5px}.brand{font-size:15px}}
+
+
+/* Maple de pabellón profesional: planks, corte en bloques y luz de barniz. */
+.boardwrap[data-surface=wood] #courtfloor{fill:#eac48f}
+.boardwrap[data-surface=wood] .line{stroke:#102e51;stroke-width:2.8}
+.boardwrap[data-surface=wood] .keylines{stroke:#fef9e9;stroke-width:3}
+.boardwrap[data-surface=white] #courtfloor{fill:#f8fbff}
+.boardwrap[data-surface=white] #floorplanks{display:none}
+.boardwrap[data-surface=white] #floorshine{opacity:0}
+.boardwrap[data-surface=white] .line{stroke:#123e6e;stroke-width:3}
+.boardwrap[data-surface=white] .keylines{stroke:#173b67}
+#courtbrand{opacity:1 !important;filter:drop-shadow(0 3px 5px #020b1c55);image-rendering:auto}
+.boardwrap[data-surface=wood]{background:#eac48f}
+.brandlogo{width:76px;height:76px;filter:drop-shadow(0 4px 12px #000a)}
+@media(max-width:1050px){.brandlogo{width:57px;height:57px}}
+@media(max-height:550px) and (min-width:721px){.brandlogo{width:46px;height:46px}}
