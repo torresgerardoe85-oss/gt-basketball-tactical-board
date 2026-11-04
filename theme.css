@@ -150,3 +150,46 @@ body.presentation{background:#0a1623}
  .workspace{height:auto;min-height:0;padding:4px}
  .sidebar{top:calc(var(--appbar-height) + 4px);max-height:calc(100dvh - var(--appbar-height) - 8px)}
 }
+
+
+/* v4 · La madera termina exactamente en el perímetro de juego. */
+#floorInside{clip-path:url(#courtBounds)}
+#outsideFloor{fill:#071526!important}
+.boardwrap[data-surface=white] #outsideFloor,
+.boardwrap[data-surface=wood] #outsideFloor{fill:#071526!important}
+.boardwrap[data-surface=white],
+.boardwrap[data-surface=wood]{background:#071526}
+.boardwrap[data-surface=white] #courtfloor{fill:#f8fbff}
+.boardwrap[data-surface=wood] #courtfloor{fill:#eac48f}
+.boardwrap[data-surface=white] #floorplanks{display:none}
+.boardwrap[data-surface=wood] #floorplanks{display:inline}
+.boardwrap[data-surface=wood] #floorshine{opacity:.18}
+.boardwrap[data-surface=white] #floorshine{opacity:0}
+.quick-clear{background:linear-gradient(135deg,#d95920,#aa3717)!important;border:1px solid #ffb279!important;color:#fff!important;box-shadow:0 2px 8px #0004}
+.quick-clear:active{background:#87350d!important}
+.topcontrols .quick-clear{font-weight:900;min-width:127px}
+.topcontrols .quick-clear:focus-visible{outline:3px solid #ffe0a7}
+body.presentation header{
+ display:flex!important;position:fixed;top:auto;bottom:max(9px,env(safe-area-inset-bottom,0px));left:50%;
+ z-index:45;transform:translateX(-50%);
+ width:min(770px,calc(100vw - 96px));max-width:none;height:54px;min-height:54px;max-height:54px;
+ padding:4px 9px;background:#061c35ee;border:1px solid #6a99be;border-radius:14px;
+ box-shadow:0 8px 25px #0009;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)
+}
+body.presentation header .brandbrand,body.presentation header .offline-chip{display:none!important}
+body.presentation header .topcontrols{display:flex!important;flex:1;justify-content:space-between;gap:5px;padding:2px 0;overflow:hidden}
+body.presentation header .topcontrols #view,
+body.presentation header .topcontrols #showall,
+body.presentation header .topcontrols #focus,
+body.presentation header .topcontrols #settings{display:none!important}
+body.presentation header .topcontrols button{height:42px;min-height:42px;font-size:12px;padding:7px 10px}
+body.presentation header .topcontrols #undo,
+body.presentation header .topcontrols #redo{min-width:42px;font-size:22px}
+body.presentation header .quick-clear{min-width:110px}
+body.presentation .workspace{height:100dvh;padding:0}
+body.presentation .exit-focus{z-index:48;right:max(12px,env(safe-area-inset-right,0px));top:max(12px,env(safe-area-inset-top,0px))}
+@media(max-width:760px){
+ body.presentation header{width:calc(100vw - 24px);height:52px;min-height:52px;max-height:52px}
+ body.presentation header .topcontrols{justify-content:flex-start;overflow-x:auto}
+ body.presentation header .topcontrols button{padding:7px 8px;font-size:11px}
+}
