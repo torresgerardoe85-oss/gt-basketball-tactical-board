@@ -255,7 +255,7 @@ function updateConnection(){
 }
 async function checkOffline(){
   try{
-    const cache=await caches.open('alespi-tactical-v5');
+    const cache=await caches.open('alespi-tactical-v6');
     offlineReady=!!(await cache.match('./index.html'))&&!!(await cache.match('./theme.css'))&&!!(await cache.match('./manifest.webmanifest'));
   }catch(e){offlineReady=false}
   updateConnection();
