@@ -193,3 +193,22 @@ body.presentation .exit-focus{z-index:48;right:max(12px,env(safe-area-inset-righ
  body.presentation header .topcontrols{justify-content:flex-start;overflow-x:auto}
  body.presentation header .topcontrols button{padding:7px 8px;font-size:11px}
 }
+
+
+/* v6 · Modos tácticos explícitos, accesibles y visibles en iPad. */
+.mode-switch{display:flex;flex:0 0 auto;align-items:center;gap:3px;padding:3px;border:1px solid #42718e;border-radius:11px;background:#07182c;box-shadow:inset 0 1px 3px #0007}
+.topcontrols .mode-switch button{min-height:35px;height:35px;padding:6px 10px;border:0;background:transparent;box-shadow:none;white-space:nowrap;color:#b9cee0}
+.topcontrols .mode-switch #modeMarker.active{background:#f58c24;color:#071b31;box-shadow:0 2px 9px #e8781b55}
+.topcontrols .mode-switch #modePieces.active{background:#31aadd;color:#07192e;box-shadow:0 2px 9px #45c7ff55}
+.topcontrols .mode-switch button:focus-visible{outline:2px solid #fff;outline-offset:1px}
+.topcontrols button:disabled,.sidebar button:disabled{opacity:.38;cursor:not-allowed;box-shadow:none}
+.topcontrols .quick-clear{order:0}
+@media(max-width:1100px){
+ .topcontrols .mode-switch{gap:2px;padding:2px}
+ .topcontrols .mode-switch button{font-size:11px;padding:6px 8px;height:36px;min-height:36px}
+}
+@media(max-width:760px){
+ .topcontrols .mode-switch button{font-size:10px;padding:5px 7px;height:35px;min-height:35px}
+}
+body.presentation .mode-switch{padding:2px}
+body.presentation .topcontrols .mode-switch button{height:37px;min-height:37px;padding:6px 8px;font-size:11px}
