@@ -40,7 +40,7 @@
 <script>
 (()=>{'use strict';
 const NS='http://www.w3.org/2000/svg',court=document.getElementById('court'),lines=document.getElementById('courtlines'),decor=document.getElementById('courtdeco'),planks=document.getElementById('floorplanks'),courtBrand=document.getElementById('courtbrand'),drawings=document.getElementById('drawings'),draft=document.getElementById('draft'),piecesEl=document.getElementById('pieces'),status=document.getElementById('status');
-const colors=['#161a23','#165bd8','#34b6ed','#ff841d','#d52b3e','#138451','#783cb8'];let color=colors[0],width=4,tool='pen',locked=false,mode=true,half=false,skin='wood',visibility={o:true,d:true,ball:true},strokes=[],pieces=[],selected=null,active=null,history=[],future=[];
+const colors=['#161a23','#165bd8','#34b6ed','#ff841d','#d52b3e','#138451','#783cb8'];let color=colors[0],width=4,tool='pen',locked=false,mode=true,half=false,skin='wood',visibility={o:true,d:true,ball:true},strokes=[],pieces=[],interactions=new Map(),history=[],future=[];
 const $=id=>document.getElementById(id);const el=(tag,attrs={},parent)=>{let n=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);if(parent)parent.appendChild(n);return n};
 function setup(){pieces=[];for(let i=0;i<5;i++){pieces.push({id:'o'+i,n:i+1,x:[260,155,365,390,170][i],y:[380,370,370,230,230][i],team:'o'});pieces.push({id:'d'+i,n:i+1,x:[260,155,365,390,170][i],y:[300,310,310,160,160][i],team:'d'})}pieces.push({id:'ball',n:'',x:287,y:377,team:'ball'})}
 function snapshot(){return JSON.stringify({strokes,pieces,mode,half,locked,skin,visibility})}function checkpoint(){history.push(snapshot());if(history.length>80)history.shift();future=[]}function restore(s){const v=JSON.parse(s);strokes=v.strokes||[];pieces=v.pieces||pieces;mode=v.mode!==false;half=!!v.half;locked=!!v.locked;skin=v.skin==='white'?'white':'wood';visibility={o:v.visibility?.o!==false,d:v.visibility?.d!==false,ball:v.visibility?.ball!==false};sync();persist()}
@@ -114,14 +114,80 @@ function renderPieces(){piecesEl.replaceChildren();if(!mode)return;for(const p o
 function sync(){courtArt();draw();renderPieces();$('boardwrap').dataset.surface=skin;$('showall').textContent=(visibility.o&&visibility.d&&visibility.ball)?'Ocultar fichas':'Mostrar fichas';for(const [id,pressed] of [['surfaceWood',skin==='wood'],['surfaceWhite',skin==='white'],['showo',visibility.o],['showd',visibility.d],['showball',visibility.ball],['showall',visibility.o&&visibility.d&&visibility.ball]]){const b=$(id);b.classList.toggle('active',pressed);b.setAttribute('aria-pressed',String(pressed))}for(const [id,active] of [['modeMarker',!mode],['modePieces',mode]]){const b=$(id);b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}
 $('showall').disabled=!mode;
 for(const id of ['showo','showd','showball'])$(id).disabled=!mode;$('view').textContent=half?'Cancha completa':'Media cancha';$('drawlock').textContent=locked?'🔒 Dibujo bloqueado':'🔓 Dibujo activo';$('drawlock').classList.toggle('active',locked)}
-function pos(e){const point=court.createSVGPoint();point.x=e.clientX;point.y=e.clientY;const m=court.getScreenCTM();if(!m)return [500,280];const q=point.matrixTransform(m.inverse());return [Math.max(30,Math.min(970,q.x)),Math.max(30,Math.min(530,q.y))]}
+function pos(e){const point=court.createSVGPoint();point.x=e.clientX;point.y=e.clientY;const m=court.getScreenCTM();if(!m)return [500,280];const q=point.matrixTransform(m.inverse());return [Math.max(5,Math.min(995,q.x)),Math.max(5,Math.min(555,q.y))]}
 function nearStroke(x,y,s){for(const p of s.points){if(Math.hypot(p[0]-x,p[1]-y)<18)return true}return false}
-court.addEventListener('pointerdown',e=>{if(e.button!==0&&e.pointerType==='mouse')return;e.preventDefault();const g=e.target.closest('.piece');const [x,y]=pos(e);if(g&&mode){checkpoint();selected=pieces.find(p=>p.id===g.getAttribute('data-id'));active={type:'piece'};court.setPointerCapture(e.pointerId);return}if(locked)return;if(tool==='eraser'){let idx=strokes.findLastIndex(s=>nearStroke(x,y,s));if(idx>=0){checkpoint();strokes.splice(idx,1);draw();persist()}return}checkpoint();active={type:'draw',points:[[x,y]],color,width};court.setPointerCapture(e.pointerId)});
-court.addEventListener('pointermove',e=>{if(!active)return;e.preventDefault();let [x,y]=pos(e);if(active.type==='piece'&&selected){selected.x=x;selected.y=y;renderPieces()}else if(active.type==='draw'){active.points.push([x,y]);draft.replaceChildren();el('polyline',{points:active.points.map(p=>p.join(',')).join(' '),stroke:active.color,'stroke-width':active.width,class:'mark'},draft)}});
-function finish(e){if(!active)return;e.preventDefault();if(active.type==='draw'){strokes.push({points:active.points,color:active.color,width:active.width});draft.replaceChildren();draw()}active=null;selected=null;persist()}
-court.addEventListener('pointerup',finish);court.addEventListener('pointercancel',finish);window.addEventListener('blur',()=>{if(active){active=null;selected=null;draft.replaceChildren();persist()}});
+// Cada contacto mantiene su propia operación: con Pencil puedes trazar y con
+// otro dedo mover una ficha, sin alternar herramientas ni interrumpir el dibujo.
+function cancelInteractions(){
+ for(const id of interactions.keys()){
+  try{if(court.hasPointerCapture(id))court.releasePointerCapture(id)}catch(e){}
+ }
+ interactions.clear();draft.replaceChildren();persist();
+}
+court.addEventListener('pointerdown',e=>{
+ if(e.pointerType==='mouse'&&e.button!==0)return;
+ if(interactions.has(e.pointerId))return;
+ const g=e.target.closest?.('.piece');
+ const [x,y]=pos(e);
+ if(g&&mode){
+  const piece=pieces.find(p=>p.id===g.getAttribute('data-id'));
+  if(!piece||[...interactions.values()].some(v=>v.type==='piece'&&v.piece===piece))return;
+  e.preventDefault();checkpoint();
+  interactions.set(e.pointerId,{type:'piece',piece});
+  try{court.setPointerCapture(e.pointerId)}catch(err){}
+  return;
+ }
+ if(locked)return;
+ e.preventDefault();
+ if(tool==='eraser'){
+  const idx=strokes.findLastIndex(s=>nearStroke(x,y,s));
+  if(idx>=0){checkpoint();strokes.splice(idx,1);draw();persist()}
+  return;
+ }
+ checkpoint();
+ const interaction={type:'draw',points:[[x,y]],color,width,line:null};
+ interaction.line=el('polyline',{points:x+','+y,stroke:color,'stroke-width':width,class:'mark'},draft);
+ interactions.set(e.pointerId,interaction);
+ try{court.setPointerCapture(e.pointerId)}catch(err){}
+});
+court.addEventListener('pointermove',e=>{
+ const interaction=interactions.get(e.pointerId);
+ if(!interaction)return;
+ e.preventDefault();
+ const [x,y]=pos(e);
+ if(interaction.type==='piece'){
+  interaction.piece.x=x;interaction.piece.y=y;
+  renderPieces();
+ }else{
+  interaction.points.push([x,y]);
+  interaction.line.setAttribute('points',interaction.points.map(p=>p.join(',')).join(' '));
+ }
+});
+function finishPointer(e,cancelled=false){
+ const interaction=interactions.get(e.pointerId);
+ if(!interaction)return;
+ e.preventDefault();
+ if(interaction.type==='draw'){
+  interaction.line.remove();
+  if(!cancelled){
+   if(interaction.points.length===1){
+    const [x,y]=interaction.points[0];
+    interaction.points.push([x+.1,y+.1]);
+   }
+   strokes.push({points:interaction.points,color:interaction.color,width:interaction.width});
+   draw();
+  }
+ }
+ interactions.delete(e.pointerId);
+ try{if(court.hasPointerCapture(e.pointerId))court.releasePointerCapture(e.pointerId)}catch(err){}
+ persist();
+}
+court.addEventListener('pointerup',e=>finishPointer(e,false));
+court.addEventListener('pointercancel',e=>finishPointer(e,true));
+window.addEventListener('blur',cancelInteractions);
 function setBoardMode(nextMode){
  if(mode===nextMode)return;
+ cancelInteractions();
  checkpoint();
  mode=nextMode;
  // Solo marcador debe estar inmediatamente listo para escribir.
