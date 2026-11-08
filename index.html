@@ -623,7 +623,11 @@ function restoreSnapshot(s){
    if(typeof state.full!=='boolean')state.full=true;
    if(typeof state.noTokens!=='boolean')state.noTokens=false;
    if(typeof state.showDef!=='boolean')state.showDef=true;
-   save(); applyLogo(); layout(); syncUI();
+   if(!Array.isArray(state.miniLogos))state.miniLogos=[];
+   state.miniLogos=state.miniLogos.filter(p=>p&&typeof p.id==='string'&&typeof p.logoId==='string'&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&Number.isFinite(p.size)).slice(0,15);
+   if(typeof state.showMiniLogos!=='boolean')state.showMiniLogos=true;
+   if(!state.miniLogos.some(p=>p.id===selectedMiniLogoId))selectedMiniLogoId=null;
+   save(); applyLogo(); layout(); syncUI(); renderMiniLogoControls();
  }
  function undo(){if(!hist.length||gestures.size)return;future.push(snap());restoreSnapshot(hist.pop());}
  function redo(){if(!future.length||gestures.size)return;hist.push(snap());restoreSnapshot(future.pop());}
@@ -640,8 +644,8 @@ function placeBar(){ const w=innerWidth,h=innerHeight; document.body.classList.t
 
 
 /* ---------- Panel ---------- */
-function openSheet(){ renderLogos(); $('sheet').hidden=false; $('scrim').hidden=false; }
-function closeSheet(){ $('sheet').hidden=true; $('scrim').hidden=true; }
+function openSheet(){ renderLogos(); $('sheet').hidden=false; $('scrim').hidden=false;draw(); }
+function closeSheet(){ $('sheet').hidden=true; $('scrim').hidden=true;selectedMiniLogoId=null;draw(); }
 $('more').onclick=openSheet; $('close').onclick=closeSheet; $('scrim').onclick=closeSheet;
 
 let delArmed=null;
@@ -659,14 +663,57 @@ function renderLogos(){
       d.onclick=ev=>{ ev.stopPropagation();
         if(delArmed!==id){ delArmed=id; renderLogos(); setTimeout(()=>{ if(delArmed===id){delArmed=null; renderLogos();} },2500); return; }
         delArmed=null; logos=logos.filter(x=>x.id!==id); saveLogos();
-        if(state.logoId===id){ state.logoId='alespi'; save(); applyLogo(); }
-        renderLogos(); syncUI(); };
+        state.miniLogos=state.miniLogos.filter(p=>p.logoId!==id);miniImageCache.delete(id);
+        if(!state.miniLogos.some(p=>p.id===selectedMiniLogoId))selectedMiniLogoId=null;
+        if(state.logoId===id){ state.logoId='alespi'; applyLogo(); }
+        save();draw();renderLogos();syncUI(); };
       b.appendChild(d); }
     box.appendChild(b);
   };
   allLogos().forEach((l,i)=>card(l.id,l.name,l.src,i>0));
   card('none','Sin logo',null,false);
+  renderMiniLogoControls();
 }
+function renderMiniLogoControls(){
+  const sel=$('mini-logo-select'), prior=sel.value,items=allLogos();
+  sel.replaceChildren();
+  for(const logo of items){const option=document.createElement('option');option.value=logo.id;option.textContent=logo.name;sel.appendChild(option);}
+  if(items.some(l=>l.id===prior))sel.value=prior;
+  const box=$('mini-logo-list');box.replaceChildren();
+  state.miniLogos.forEach((entry,i)=>{
+    const logo=items.find(l=>l.id===entry.logoId);
+    const row=document.createElement('div');row.className='mini-item'+(entry.id===selectedMiniLogoId?' selected':'');
+    const label=document.createElement('span');label.className='mini-name';label.textContent=(i+1)+'. '+(logo?.name||'Logo');
+    const size=document.createElement('span');size.className='mini-size';size.textContent=(Number(entry.size)||5).toFixed(1);
+    row.append(label,size);
+    const button=(symbol,title,fn,cl='')=>{const el=document.createElement('button');el.textContent=symbol;el.title=title;el.setAttribute('aria-label',title);el.className=cl;el.onclick=fn;row.appendChild(el);};
+    const changeSize=delta=>{const before=snap();entry.size=Math.max(2.5,Math.min(10,(Number(entry.size)||5)+delta));selectedMiniLogoId=entry.id;draw();commit(before);renderMiniLogoControls();};
+    button('−','Reducir logo',()=>changeSize(-1));
+    button('+','Aumentar logo',()=>changeSize(1));
+    button('×','Quitar logo de cancha',()=>{
+      const before=snap();state.miniLogos=state.miniLogos.filter(p=>p.id!==entry.id);
+      if(selectedMiniLogoId===entry.id)selectedMiniLogoId=null;draw();commit(before);renderMiniLogoControls();
+    },'remove');
+    row.onclick=e=>{if(e.target.closest('button'))return;selectedMiniLogoId=entry.id;draw();renderMiniLogoControls();};
+    box.appendChild(row);
+  });
+  $('mini-visibility').textContent=state.showMiniLogos?'Ocultar logos':'Mostrar logos';
+  $('mini-visibility').setAttribute('aria-pressed',String(state.showMiniLogos));
+}
+$('mini-add').onclick=()=>{
+  if(state.miniLogos.length>=15){$('mini-logo-status').textContent='Máximo 15 logos pequeños por jugada.';return;}
+  const logoId=$('mini-logo-select').value;if(!allLogos().some(l=>l.id===logoId))return;
+  const before=snap(),i=state.miniLogos.length;
+  const entry={id:'mini-'+Date.now().toString(36)+'-'+i,logoId,x:8+(i%4)*11,y:Math.min(L-8,9+Math.floor(i/4)*9),size:5};
+  state.miniLogos.push(entry);state.showMiniLogos=true;selectedMiniLogoId=entry.id;
+  draw();commit(before);renderMiniLogoControls();
+  $('mini-logo-status').textContent='Logo añadido. Arrástralo en la cancha.';
+  closeSheet();
+};
+$('mini-visibility').onclick=()=>{
+  const before=snap();state.showMiniLogos=!state.showMiniLogos;selectedMiniLogoId=null;
+  draw();commit(before);renderMiniLogoControls();
+};
 function saveLogos(){ try{ localStorage.setItem(LKEY,JSON.stringify(logos)); return true; }catch(e){ return false; } }
 
 function removeBg(img){
