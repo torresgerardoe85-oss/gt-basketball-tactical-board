@@ -1,5 +1,5 @@
-/* ALESPI Tigers Tactical Board · Offline app shell v6. */
-const CACHE='alespi-tactical-v6';
+/* ALESPI Tigers Tactical Board · Offline app shell v7. */
+const CACHE='alespi-tactical-v7';
 const ASSETS=['./','./index.html','./theme.css','./manifest.webmanifest','./brand.svg','./icon.svg'];
 self.addEventListener('install',event=>{
  event.waitUntil((async()=>{const cache=await caches.open(CACHE);await cache.addAll(ASSETS);await self.skipWaiting()})());
