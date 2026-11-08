@@ -23,3 +23,9 @@ Este repositorio no controla el sitio original en Netlify. La versión anterior 
 4. Hacer un respaldo antes de borrar los datos de Safari o cambiar de dominio.
 
 El almacenamiento web no se comparte entre dominios (Netlify y GitHub Pages no sincronizan los datos).
+
+## Logos pequeños en cualquier lugar (v3)
+
+Desde **Más → Logos pequeños**, selecciona un logo guardado y pulsa **Poner logo**. Arrástralo con el dedo o Apple Pencil para ubicarlo en otra parte de la cancha. Puedes crear hasta 15 logos pequeños, ajustar su tamaño con **− / +**, ocultarlos o quitarlos independientemente del logo grande central. Los logos se conservan en autoguardado, jugadas, deshacer/rehacer y respaldos JSON (versión 3; acepta respaldos anteriores).
+
+Los logos secundarios se colocan en coordenadas de cancha; los de la mitad inferior no se muestran en la vista de media cancha, y reaparecen al volver a cancha completa.
