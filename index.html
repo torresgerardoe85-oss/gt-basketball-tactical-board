@@ -131,7 +131,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;displa
 <div class="app">
   <nav class="bar" id="bar" aria-label="Herramientas">
     <div class="grp tools" role="toolbar">
-      <button class="tool on" data-mode="move" id="t-move"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M3 12h18M12 3l-3 3m3-3 3 3M12 21l-3-3m3 3 3-3M3 12l3-3m-3 3 3 3M21 12l-3-3m3 3-3 3"/></svg>Mover</button>
+      <button class="tool on" data-mode="move" id="t-move" title="Mover fichas sin dibujar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M3 12h18M12 3l-3 3m3-3 3 3M12 21l-3-3m3 3 3-3M3 12l3-3m-3 3 3 3M21 12l-3-3m3 3-3 3"/></svg>Mover</button>
+      <button class="tool" data-mode="both" id="t-both" title="Mover fichas y dibujar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h13m-3-3 3 3-3 3M4 20l4-1L19 8l-3-3L5 16z"/></svg>Ambas</button>
       <button class="tool" data-mode="pen" id="t-pen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"/></svg>Lápiz</button>
       <button class="tool" data-mode="arrow" id="t-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18c5-1 9-6 15-12M13 6h6v6"/></svg>Corte</button>
       <button class="tool" data-mode="pass" id="t-pass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3"><path d="M4 18 19 6"/><path d="M13 6h6v6" stroke-dasharray="none"/></svg>Pase</button>
@@ -161,7 +162,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;displa
     </div>
   </nav>
   <div class="float" id="float" hidden>
-      <button class="ib" data-fmode="move" aria-label="Mover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M3 12h18M12 3l-3 3m3-3 3 3M12 21l-3-3m3 3 3-3M3 12l3-3m-3 3 3 3M21 12l-3-3m3 3-3 3"/></svg></button>
+      <button class="ib" data-fmode="move" aria-label="Mover fichas sin dibujar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M3 12h18M12 3l-3 3m3-3 3 3M12 21l-3-3m3 3 3-3M3 12l3-3m-3 3 3 3M21 12l-3-3m3 3-3 3"/></svg></button>
+      <button class="ib" data-fmode="both" aria-label="Mover fichas y dibujar" title="Ambas · Mover y dibujar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h13m-3-3 3 3-3 3M4 20l4-1L19 8l-3-3L5 16z"/></svg></button>
       <button class="ib" data-fmode="pen" aria-label="Lápiz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"/></svg></button>
       <button class="ib" data-fmode="erase" aria-label="Borrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h12M5 15l8-9 6 6-8 8H8z"/></svg></button>
       <button class="ib" id="f-undo" aria-label="Deshacer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
@@ -219,6 +221,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;displa
 
   <section>
     <h3>Fichas</h3>
+    <p class="hint">Mover: solo arrastrar fichas, sin escribir. Lápiz: solo dibujar. Ambas: mover fichas y dibujar en espacios libres.</p>
     <div class="stack">
       <button class="opt" id="tok">Mostrar fichas <b></b></button>
       <button class="opt" id="def">Mostrar defensa <b></b></button>
@@ -545,14 +548,15 @@ function eraseAt(X,Y){
   if(state.strokes.length!==n) draw();
 }
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
- // Mover una ficha no cambia la herramienta de dibujo; sobre el espacio libre,
- // "Mover" funciona como lápiz para un entrenamiento realmente simultáneo.
+ // Mover nunca dibuja; Lápiz solo dibuja; Ambas combina fichas y escritura.
+ // Los gestos siguen siendo independientes para dedo y Apple Pencil.
  cv.addEventListener('pointerdown',e=>{
    if(e.pointerType==='mouse'&&e.button!==0) return;
    if(gestures.has(e.pointerId))return;
    if(!gestures.size) gestureBefore=snap();
-   const [X,Y]=pos(e), mini=(mode==='move'||mode==='pen')?hitSmallLogo(X,Y):null;
-   const t=mini?null:(mode==='move'||mode==='pen')?hitToken(X,Y):null;
+   const [X,Y]=pos(e), canMove=mode==='move'||mode==='both';
+   const mini=canMove?hitSmallLogo(X,Y):null;
+   const t=mini?null:canMove?hitToken(X,Y):null;
    let g;
    if(mini&&!([...gestures.values()].some(x=>x.type==='move-logo'&&x.logo===mini))){
      const [mx,my]=toS(mini.x,mini.y);
@@ -563,12 +567,16 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
      g={type:'move',t,dx:X-tx,dy:Y-ty,cur:null};
      const bb=ballOf();
      if(t.t==='b')t.h=null;
-     else if(state.dribTrail&&t.t==='o'&&bb?.h===t.id)
+     else if(mode==='both'&&state.dribTrail&&t.t==='o'&&bb?.h===t.id)
        g.cur={pts:[[t.x,t.y]],ci,w:pw,k:'drib'};
    }else if(mode==='erase'){
      g={type:'erase'}; eraseAt(X,Y);
+   }else if(mode==='move'){
+     // Tocar un espacio libre no inicia ninguna operación.
+     if(!gestures.size)gestureBefore=null;
+     e.preventDefault();return;
    }else{
-     g={type:'draw',cur:{pts:[toL(X,Y)],ci,w:pw,k:mode==='move'?'pen':mode}};
+     g={type:'draw',cur:{pts:[toL(X,Y)],ci,w:pw,k:mode==='both'?'pen':mode}};
    }
    gestures.set(e.pointerId,g);
    try{cv.setPointerCapture(e.pointerId)}catch(_){}
@@ -609,9 +617,10 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 /* ---------- Barra ---------- */
 function setMode(m){
   mode=m;
+  try{localStorage.setItem('gt-basketball-tool-mode',m)}catch(_){}
   document.querySelectorAll('.tool').forEach(x=>x.classList.toggle('on',x.dataset.mode===m));
   document.querySelectorAll('[data-fmode]').forEach(x=>x.classList.toggle('on',x.dataset.fmode===m));
-  cv.style.cursor=m==='move'?'grab':'crosshair';
+  cv.style.cursor=(m==='move'||m==='both')?'grab':'crosshair';
 }
 document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
 document.querySelectorAll('[data-fmode]').forEach(b=>b.onclick=()=>setMode(b.dataset.fmode));
@@ -883,7 +892,12 @@ function syncUI(){
 cv.style.cursor='grab';
 new ResizeObserver(layout).observe(wrap);
 if(document.fonts) document.fonts.ready.then(draw);
-setMode('move'); syncUI(); applyLogo();
+let initialMode='move';
+try{
+  const savedMode=localStorage.getItem('gt-basketball-tool-mode');
+  if(['move','both','pen','arrow','pass','erase'].includes(savedMode))initialMode=savedMode;
+}catch(_){}
+setMode(initialMode); syncUI(); applyLogo();
 if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 })();
 </script>
