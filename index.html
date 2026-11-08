@@ -475,7 +475,7 @@ function drawSmallLogos(){
     const w=img.naturalWidth*k,h=img.naturalHeight*k;
     ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
     ctx.drawImage(img,cx-w/2,cy-h/2,w,h);
-    if(entry.id===selectedMiniLogoId||[...gestures.values()].some(g=>g.type==='move-logo'&&g.logo===entry)){
+    if((!$('sheet').hidden&&entry.id===selectedMiniLogoId)||[...gestures.values()].some(g=>g.type==='move-logo'&&g.logo===entry)){
       ctx.setLineDash([5,4]);ctx.lineWidth=1.5;ctx.strokeStyle='#f28a1e';
       ctx.strokeRect(cx-side/2-4,cy-side/2-4,side+8,side+8);ctx.setLineDash([]);
     }
@@ -687,7 +687,9 @@ function renderMiniLogoControls(){
     const size=document.createElement('span');size.className='mini-size';size.textContent=(Number(entry.size)||5).toFixed(1);
     row.append(label,size);
     const button=(symbol,title,fn,cl='')=>{const el=document.createElement('button');el.textContent=symbol;el.title=title;el.setAttribute('aria-label',title);el.className=cl;el.onclick=fn;row.appendChild(el);};
-    const changeSize=delta=>{const before=snap();entry.size=Math.max(2.5,Math.min(10,(Number(entry.size)||5)+delta));selectedMiniLogoId=entry.id;draw();commit(before);renderMiniLogoControls();};
+    const changeSize=delta=>{const before=snap();entry.size=Math.max(2.5,Math.min(10,(Number(entry.size)||5)+delta));
+      const margin=entry.size/2;entry.x=clamp(entry.x,margin,W-margin);entry.y=clamp(entry.y,margin,(state.full?94:47)-margin);
+      selectedMiniLogoId=entry.id;draw();commit(before);renderMiniLogoControls();};
     button('−','Reducir logo',()=>changeSize(-1));
     button('+','Aumentar logo',()=>changeSize(1));
     button('×','Quitar logo de cancha',()=>{
