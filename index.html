@@ -18,7 +18,7 @@
 <button id="settings" aria-expanded="false" aria-controls="sidebar">⚙ Opciones</button>
 </nav><span id="offlineState" class="offline-chip" role="status">Comprobando uso offline…</span></header>
 <main class="workspace"><div class="boardwrap" id="boardwrap" data-surface="wood"><button id="exitfocus" class="exit-focus" hidden>✕ Mostrar herramientas</button><span class="courtlabel">ALESPI · TIGERS</span><svg class="board" id="court" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" aria-label="Pizarra de baloncesto interactiva"><defs><pattern id="wood" width="1000" height="56" patternUnits="userSpaceOnUse"><rect width="1000" height="56" fill="#e7c698"/><path d="M0 55 H1000" stroke="#c59864" stroke-width="2" opacity=".26"/><path d="M0 12 H1000 M0 29 H1000" stroke="#c59864" opacity=".11"/></pattern>
-<linearGradient id="shine" x1="0" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".7"/><stop offset=".27" stop-color="#fff" stop-opacity=".05"/><stop offset=".54" stop-color="#fff" stop-opacity=".36"/><stop offset=".8" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#563815" stop-opacity=".18"/></linearGradient><clipPath id="courtBounds"><rect x="0" y="0" width="1000" height="560"/></clipPath></defs>
+<linearGradient id="shine" x1="0" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".7"/><stop offset=".27" stop-color="#fff" stop-opacity=".05"/><stop offset=".54" stop-color="#fff" stop-opacity=".36"/><stop offset=".8" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#563815" stop-opacity=".18"/></linearGradient><radialGradient id="basketball-fill" cx="30%" cy="24%" r="85%"><stop offset="0" stop-color="#ffd092"/><stop offset=".5" stop-color="#e98632"/><stop offset="1" stop-color="#8f3813"/></radialGradient><clipPath id="courtBounds"><rect x="0" y="0" width="1000" height="560"/></clipPath></defs>
 <rect id="outsideFloor" width="1000" height="560" fill="#071526" pointer-events="none"/>
 <g id="floorInside" clip-path="url(#courtBounds)">
 <rect id="courtfloor" width="1000" height="560" fill="#eac48f"/>
@@ -42,8 +42,14 @@
 const NS='http://www.w3.org/2000/svg',court=document.getElementById('court'),lines=document.getElementById('courtlines'),decor=document.getElementById('courtdeco'),planks=document.getElementById('floorplanks'),courtBrand=document.getElementById('courtbrand'),drawings=document.getElementById('drawings'),draft=document.getElementById('draft'),piecesEl=document.getElementById('pieces'),status=document.getElementById('status');
 const colors=['#161a23','#165bd8','#34b6ed','#ff841d','#d52b3e','#138451','#783cb8'];let color=colors[0],width=4,tool='pen',locked=false,mode=true,half=false,skin='wood',visibility={o:true,d:true,ball:true},strokes=[],pieces=[],interactions=new Map(),history=[],future=[];
 const $=id=>document.getElementById(id);const el=(tag,attrs={},parent)=>{let n=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);if(parent)parent.appendChild(n);return n};
-function setup(){pieces=[];for(let i=0;i<5;i++){pieces.push({id:'o'+i,n:i+1,x:[260,155,365,390,170][i],y:[380,370,370,230,230][i],team:'o'});pieces.push({id:'d'+i,n:i+1,x:[260,155,365,390,170][i],y:[300,310,310,160,160][i],team:'d'})}pieces.push({id:'ball',n:'',x:287,y:377,team:'ball'})}
-function snapshot(){return JSON.stringify({strokes,pieces,mode,half,locked,skin,visibility})}function checkpoint(){history.push(snapshot());if(history.length>80)history.shift();future=[]}function restore(s){const v=JSON.parse(s);strokes=v.strokes||[];pieces=v.pieces||pieces;mode=v.mode!==false;half=!!v.half;locked=!!v.locked;skin=v.skin==='white'?'white':'wood';visibility={o:v.visibility?.o!==false,d:v.visibility?.d!==false,ball:v.visibility?.ball!==false};sync();persist()}
+function setup(){pieces=[];for(let i=0;i<5;i++){pieces.push({id:'o'+i,n:i+1,x:[260,155,365,390,170][i],y:[380,370,370,230,230][i],team:'o'});pieces.push({id:'d'+i,n:i+1,x:[260,155,365,390,170][i],y:[300,310,310,160,160][i],team:'d'})}pieces.push({id:'ball',n:'',x:287,y:377,team:'ball',holder:'o0'})}
+// Une el balón al atacante más cercano al soltarlo; su ubicación sigue siendo editable.
+function associateBall(){
+ const ball=pieces.find(p=>p.id==='ball');if(!ball)return;
+ const closest=pieces.filter(p=>p.team==='o').map(p=>({id:p.id,d:Math.hypot(p.x-ball.x,p.y-ball.y)})).sort((a,b)=>a.d-b.d)[0];
+ ball.holder=closest&&closest.d<=55?closest.id:null;
+}
+function snapshot(){return JSON.stringify({strokes,pieces,mode,half,locked,skin,visibility})}function checkpoint(){history.push(snapshot());if(history.length>80)history.shift();future=[]}function restore(s){const v=JSON.parse(s);strokes=v.strokes||[];pieces=v.pieces||pieces;if(pieces.find(p=>p.id==='ball')?.holder===undefined)associateBall();mode=v.mode!==false;half=!!v.half;locked=!!v.locked;skin=v.skin==='white'?'white':'wood';visibility={o:v.visibility?.o!==false,d:v.visibility?.d!==false,ball:v.visibility?.ball!==false};sync();persist()}
 function persist(){try{localStorage.setItem('gt-board-autosave',snapshot())}catch(e){notify('No se pudo guardar localmente')}}function notify(t){status.textContent=t}
 
 function makeFloor(){
@@ -110,7 +116,23 @@ function courtArt(){
   courtBrand.setAttribute('opacity','1');
 }
 function draw(){drawings.replaceChildren();for(const s of strokes){let p=el('polyline',{points:s.points.map(p=>p.join(',')).join(' '),stroke:s.color,'stroke-width':s.width,class:'mark'},drawings)}}
-function renderPieces(){piecesEl.replaceChildren();if(!mode)return;for(const p of pieces){if(!visibility[p.team])continue;let g=el('g',{class:'piece'+(p.team==='ball'?' ball':''),'data-id':p.id,transform:'translate('+p.x+','+p.y+')'},piecesEl);el('circle',{r:p.team==='ball'?13:22,fill:p.team==='o'?'#1764d6':p.team==='d'?'#d72b3d':'#e88732'},g);if(p.team==='ball'){el('path',{d:'M-11 0H11 M0 -12Q9 0 0 12 M0 -12Q-9 0 0 12',stroke:'#57341b','stroke-width':1.8,fill:'none'},g)}else{let t=el('text',{x:0,y:1},g);t.textContent=p.n}}}
+function renderPieces(){
+ piecesEl.replaceChildren();if(!mode)return;
+ for(const p of pieces){
+  if(!visibility[p.team])continue;
+  const isBall=p.team==='ball';
+  const g=el('g',{class:'piece'+(isBall?' ball':''),'data-id':p.id,transform:'translate('+p.x+','+p.y+')'},piecesEl);
+  if(isBall){
+   el('circle',{r:16,fill:'url(#basketball-fill)'},g);
+   el('path',{d:'M-15 0H15 M0 -15C8 -8 8 8 0 15 M0 -15C-8 -8 -8 8 0 15',stroke:'#5b2b16','stroke-width':2,fill:'none','stroke-linecap':'round'},g);
+   el('path',{d:'M-11 -10Q-15 0 -11 10 M11 -10Q15 0 11 10',stroke:'#5b2b16','stroke-width':1.6,fill:'none'},g);
+   el('ellipse',{cx:-5,cy:-7,rx:4.5,ry:2.7,fill:'#fff8d6',opacity:'.45'},g);
+  }else{
+   el('circle',{r:22,fill:p.team==='o'?'#1764d6':'#d72b3d'},g);
+   const t=el('text',{x:0,y:1},g);t.textContent=p.n;
+  }
+ }
+}
 function sync(){if(!mode)locked=false;courtArt();draw();renderPieces();$('boardwrap').dataset.surface=skin;$('showall').textContent=!mode?'Sin fichas':((visibility.o&&visibility.d&&visibility.ball)?'Ocultar fichas':'Mostrar fichas');for(const [id,pressed] of [['surfaceWood',skin==='wood'],['surfaceWhite',skin==='white'],['showo',visibility.o],['showd',visibility.d],['showball',visibility.ball],['showall',visibility.o&&visibility.d&&visibility.ball]]){const b=$(id);b.classList.toggle('active',pressed);b.setAttribute('aria-pressed',String(pressed))}for(const [id,active] of [['modeMarker',!mode],['modePieces',mode]]){const b=$(id);b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}
 $('showall').disabled=!mode;
 for(const id of ['showo','showd','showball'])$(id).disabled=!mode;$('view').textContent=half?'Cancha completa':'Media cancha';$('drawlock').textContent=locked?'🔒 Dibujo bloqueado':'🔓 Dibujo activo';$('drawlock').classList.toggle('active',locked);$('drawlock').disabled=!mode}
@@ -133,7 +155,10 @@ court.addEventListener('pointerdown',e=>{
   const piece=pieces.find(p=>p.id===g.getAttribute('data-id'));
   if(!piece||[...interactions.values()].some(v=>v.type==='piece'&&v.piece===piece))return;
   e.preventDefault();checkpoint();
-  interactions.set(e.pointerId,{type:'piece',piece});
+  if(piece.team==='ball')piece.holder=null;
+  const ball=pieces.find(p=>p.id==='ball');
+  const carriesBall=piece.team==='o'&&ball?.holder===piece.id;
+  interactions.set(e.pointerId,{type:'piece',piece,carriesBall});
   try{court.setPointerCapture(e.pointerId)}catch(err){}
   return;
  }
@@ -156,7 +181,12 @@ court.addEventListener('pointermove',e=>{
  e.preventDefault();
  const [x,y]=pos(e);
  if(interaction.type==='piece'){
+  const priorX=interaction.piece.x,priorY=interaction.piece.y;
   interaction.piece.x=x;interaction.piece.y=y;
+  if(interaction.carriesBall){
+   const ball=pieces.find(p=>p.id==='ball');
+   if(ball){ball.x=Math.max(16,Math.min(984,ball.x+x-priorX));ball.y=Math.max(16,Math.min(544,ball.y+y-priorY))}
+  }
   renderPieces();
  }else{
   interaction.points.push([x,y]);
@@ -178,6 +208,7 @@ function finishPointer(e,cancelled=false){
    draw();
   }
  }
+ if(interaction.type==='piece'&&interaction.piece.team==='ball')associateBall();
  interactions.delete(e.pointerId);
  try{if(court.hasPointerCapture(e.pointerId))court.releasePointerCapture(e.pointerId)}catch(err){}
  persist();
@@ -255,7 +286,7 @@ function updateConnection(){
 }
 async function checkOffline(){
   try{
-    const cache=await caches.open('alespi-tactical-v6');
+    const cache=await caches.open('alespi-tactical-v7');
     offlineReady=!!(await cache.match('./index.html'))&&!!(await cache.match('./theme.css'))&&!!(await cache.match('./manifest.webmanifest'));
   }catch(e){offlineReady=false}
   updateConnection();
@@ -270,7 +301,7 @@ if('serviceWorker'in navigator){
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persist()});
 window.addEventListener('pagehide',persist);
 
-setup();try{const saved=localStorage.getItem('gt-board-autosave');if(saved){const v=JSON.parse(saved);strokes=v.strokes||[];pieces=v.pieces||pieces;mode=v.mode!==false;half=!!v.half;locked=!!v.locked;skin=v.skin==='white'?'white':'wood';visibility={o:v.visibility?.o!==false,d:v.visibility?.d!==false,ball:v.visibility?.ball!==false}}}catch(e){}sync();
+setup();try{const saved=localStorage.getItem('gt-board-autosave');if(saved){const v=JSON.parse(saved);strokes=v.strokes||[];pieces=v.pieces||pieces;if(pieces.find(p=>p.id==='ball')?.holder===undefined)associateBall();mode=v.mode!==false;half=!!v.half;locked=!!v.locked;skin=v.skin==='white'?'white':'wood';visibility={o:v.visibility?.o!==false,d:v.visibility?.d!==false,ball:v.visibility?.ball!==false}}}catch(e){}sync();
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{$('offlineState').textContent='No se pudo preparar uso offline'});
 })();
 </script></body></html>

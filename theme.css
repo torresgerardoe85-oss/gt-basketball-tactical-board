@@ -50,7 +50,8 @@ input[type=range]{accent-color:var(--sky)}
 .piece circle{filter:drop-shadow(0 3px 2px #07131f66)}
 .piece[data-id^=o] circle{fill:#2ea9ea;stroke:#fff}
 .piece[data-id^=d] circle{fill:#ff841d;stroke:#fff}
-.ball circle{fill:#e88732}
+.piece.ball circle{fill:url(#basketball-fill);stroke:#713517;stroke-width:1.2;filter:drop-shadow(0 2px 3px #170f0a88)}
+.piece.ball path,.piece.ball ellipse{pointer-events:none}
 .piece text{fill:#fff;font-weight:900}
 #courtbrand{pointer-events:none}
 .courtlabel{position:absolute;top:14px;left:15px;padding:6px 9px;border-radius:8px;background:#0b203ba8;color:#fff;font-size:10px;font-weight:900;letter-spacing:.14em;pointer-events:none}

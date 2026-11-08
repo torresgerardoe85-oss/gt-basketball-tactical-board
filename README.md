@@ -15,7 +15,10 @@ GitHub Pages desde main/(root). Enlace esperado: https://torresgerardoe85-oss.gi
 
 Los cambios se guardan localmente en el dispositivo. Se recomienda comprobar en iPad y Android antes de usar durante un juego real.
 
-## Modos de trabajo (v6)
+## Modos de trabajo (v7)
+
+- **Balón con atacante:** al mover un atacante, el balón lo acompaña si está asociado a él. Arrastra el balón junto a otro atacante para pasarlo o déjalo lejos para liberarlo. El vínculo se conserva al guardar o deshacer jugadas; los respaldos anteriores siguen abriendo.
+- **Balón mejorado:** balón con sombras, costuras y volumen visual.
 
 - **Solo marcador:** la cancha queda completamente libre, sin fichas ofensivas, defensivas ni balón. Se permite escribir y dibujar inmediatamente.
 - **Fichas + dibujo:** se muestran fichas y balón, se arrastran sin cambiar de herramienta y se dibuja en los espacios libres. Soporta gestos de varios punteros (Apple Pencil y dedo al mismo tiempo).
