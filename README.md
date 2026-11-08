@@ -1,28 +1,25 @@
-# ALESPI Tigers Tactical Board
+# GT Basketball · Pizarra Táctica (base Claude)
 
-Pizarra táctica profesional de baloncesto, basada en GT Basketball.
+Versión web unificada a partir de la aplicación original de Claude facilitada por el propietario del proyecto (Netlify), con mejoras para uso de entrenadores.
 
-## Funciones
-- Dos superficies: cancha blanca y cancha de madera.
-- Estética ALESPI Tigers: azul navy, azul cielo, anaranjado, logo oficial proporcionado por el usuario.
-- Fichas de ataque, defensa y balón: ocultar/mostrar por separado, arrastrar con ratón o dedo, o esconder todo.
-- Dibujar con marcador mientras mueves fichas; bloquear dibujo; cambiar grosor, borrador, deshacer y rehacer.
-- Media cancha, cancha completa, pantalla completa, guardar y cargar jugadas desde el dispositivo.
-- PWA offline con caché versionada (v2).
+## Herramientas
+- Cuatro estilos de cancha, cancha completa / media cancha, orientación adaptable y personalización del logo.
+- Mover fichas ofensivas y defensivas; balón asociado al jugador que lo tiene.
+- Dibujar al mismo tiempo con un segundo contacto (dedo y Apple Pencil), sin alternar herramientas.
+- Lápiz, cortes, pases, borrador, deshacer y rehacer; modo solo marcador.
+- Guardado automático de la pizarra, biblioteca de jugadas con nombre y exportación/importación de respaldos JSON.
+- Web app instalable y respaldo offline tras abrirla en línea una vez.
 
 ## Publicación
-GitHub Pages desde main/(root). Enlace esperado: https://torresgerardoe85-oss.github.io/gt-basketball-tactical-board/
+GitHub Pages desde main:
+https://torresgerardoe85-oss.github.io/gt-basketball-tactical-board/
 
-Los cambios se guardan localmente en el dispositivo. Se recomienda comprobar en iPad y Android antes de usar durante un juego real.
+Este repositorio no controla el sitio original en Netlify. La versión anterior a la integración quedó en la rama `backup/antes-de-integrar-claude-netlify-2026-11-08`.
 
-## Modos de trabajo (v7)
+## Antes de usar en un partido
+1. Abrir la aplicación en Safari (iPad), probar Apple Pencil, dedo, guardado y carga de jugadas.
+2. Instalar con Compartir > Añadir a pantalla de inicio.
+3. Después de una apertura en línea, probar modo avión.
+4. Hacer un respaldo antes de borrar los datos de Safari o cambiar de dominio.
 
-- **Balón con atacante:** al mover un atacante, el balón lo acompaña si está asociado a él. Arrastra el balón junto a otro atacante para pasarlo o déjalo lejos para liberarlo. El vínculo se conserva al guardar o deshacer jugadas; los respaldos anteriores siguen abriendo.
-- **Balón mejorado:** balón con sombras, costuras y volumen visual.
-
-- **Solo marcador:** la cancha queda completamente libre, sin fichas ofensivas, defensivas ni balón. Se permite escribir y dibujar inmediatamente.
-- **Fichas + dibujo:** se muestran fichas y balón, se arrastran sin cambiar de herramienta y se dibuja en los espacios libres. Soporta gestos de varios punteros (Apple Pencil y dedo al mismo tiempo).
-- El cambio de modo conserva trazos, ubicación de fichas, jugadas guardadas, acciones de deshacer/rehacer y respaldo local.
-- Los controles para mostrar u ocultar grupos de fichas se deshabilitan en Solo marcador, y vuelven a estar disponibles al activar Fichas + dibujo.
-
-La aplicación se actualiza automáticamente al abrirla con conexión; prueba la vista instalada sin conexión antes de usarla en un partido.
+El almacenamiento web no se comparte entre dominios (Netlify y GitHub Pages no sincronizan los datos).
