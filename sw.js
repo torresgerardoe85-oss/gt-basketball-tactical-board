@@ -1,5 +1,5 @@
 /* GT Basketball · Claude-base Unified Board · offline v1 */
-const CACHE='gt-basketball-claude-base-v1';
+const CACHE='gt-basketball-claude-base-v2';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./brand.svg','./icon.svg'];
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  const cache=await caches.open(CACHE);await cache.addAll(ASSETS);await self.skipWaiting();
