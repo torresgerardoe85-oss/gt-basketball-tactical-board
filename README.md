@@ -29,3 +29,12 @@ El almacenamiento web no se comparte entre dominios (Netlify y GitHub Pages no s
 Desde **Más → Logos pequeños**, selecciona un logo guardado y pulsa **Poner logo**. Arrástralo con el dedo o Apple Pencil para ubicarlo en otra parte de la cancha. Puedes crear hasta 15 logos pequeños, ajustar su tamaño con **− / +**, ocultarlos o quitarlos independientemente del logo grande central. Los logos se conservan en autoguardado, jugadas, deshacer/rehacer y respaldos JSON (versión 3; acepta respaldos anteriores).
 
 Los logos secundarios se colocan en coordenadas de cancha; los de la mitad inferior no se muestran en la vista de media cancha, y reaparecen al volver a cancha completa.
+
+## Panel fuera de la cancha (v4, iPad)
+
+- El modo «Limpia» coloca la barra de herramientas **fuera del lienzo de juego**, en la franja superior, sin cubrir esquinas, jugadores ni logos. Al rotar a vertical, la barra permanece fuera de la cancha; en pantallas estrechas, admite desplazamiento horizontal.
+- El nuevo botón rápido **Fichas ON / Fichas OFF** en el modo limpio permite ocultar o mostrar las fichas de ataque/defensa/balón sin abrir el panel Más. Mantiene sus posiciones al ocultarlas.
+- La cancha se reajusta al entrar o salir del modo limpio, y se conserva el acceso a lápiz, borrador, deshacer, rehacer, borrar dibujos y volver al modo normal.
+- Caché offline incrementada a versión 3.
+
+Se probó el diseño en Chromium con dimensiones de tablet horizontal, vertical y móvil; resta prueba física con Apple Pencil en Safari iPadOS.

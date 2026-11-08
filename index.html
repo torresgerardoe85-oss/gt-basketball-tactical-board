@@ -28,6 +28,7 @@ body{background:var(--ui);color:var(--fg);font-family:var(--body);overflow:hidde
   padding-left:max(var(--gut),env(safe-area-inset-left,0px));padding-right:max(var(--gut),env(safe-area-inset-right,0px))}
 .app{height:100%;display:flex;flex-direction:column;gap:6px;padding-block:6px}
 body.side .app{flex-direction:row}
+body.side.focus .app{flex-direction:column}
 button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
@@ -65,9 +66,18 @@ body.side .grp{flex-direction:column}
 
 main{flex:1;min-height:0;min-width:0;position:relative}
 canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block;border-radius:10px}
-.float{position:absolute;top:8px;right:8px;display:flex;gap:6px;padding:5px;border-radius:14px;background:rgba(10,20,48,.82);border:1px solid var(--rule);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.float .ib{width:42px;height:42px}
+.float{position:relative;top:auto;right:auto;align-self:flex-end;flex:0 0 auto;max-width:100%;
+  min-height:54px;display:flex;align-items:center;gap:6px;padding:5px;border-radius:14px;
+  background:var(--panel);border:1px solid var(--rule);overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:thin;touch-action:pan-x}
+.float .ib{flex:0 0 42px;width:42px;height:42px}
 .float .ib.on{background:var(--accent);color:var(--ink);border-color:var(--accent)}
+.float .ib.tokens-toggle{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:5px;
+  min-width:93px;width:auto;padding:0 8px;white-space:nowrap;font:700 12px var(--body)}
+.float .ib.tokens-toggle.is-off{background:var(--sky);color:var(--ink);border-color:var(--sky)}
+.float .ib.tokens-toggle svg{width:18px;height:18px;flex:none}
+@media(max-width:520px){.float{width:100%}.float .ib{width:38px;flex-basis:38px;height:40px}
+  .float .ib.tokens-toggle{min-width:88px;flex-basis:auto}.float #f-exit{order:-1}}
 
 /* Panel "Más" */
 .scrim{position:fixed;inset:0;background:rgba(3,8,22,.55);z-index:20}
@@ -150,17 +160,18 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;displa
       <button class="ib" id="more" aria-label="Más opciones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     </div>
   </nav>
-  <main id="wrap">
-    <canvas id="cv" aria-label="Cancha de baloncesto con fichas"></canvas>
-    <div class="float" id="float" hidden>
+  <div class="float" id="float" hidden>
       <button class="ib" data-fmode="move" aria-label="Mover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M3 12h18M12 3l-3 3m3-3 3 3M12 21l-3-3m3 3 3-3M3 12l3-3m-3 3 3 3M21 12l-3-3m3 3-3 3"/></svg></button>
       <button class="ib" data-fmode="pen" aria-label="Lápiz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"/></svg></button>
       <button class="ib" data-fmode="erase" aria-label="Borrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h12M5 15l8-9 6 6-8 8H8z"/></svg></button>
       <button class="ib" id="f-undo" aria-label="Deshacer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
       <button class="ib" id="f-redo" aria-label="Rehacer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
       <button class="ib" id="f-clear" aria-label="Borrar todo" style="color:var(--accent);border-color:var(--accent)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>
+      <button class="ib tokens-toggle" id="f-tok" aria-label="Ocultar fichas" aria-pressed="true" title="Ocultar fichas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="8" r="3.5"/><circle cx="17" cy="16" r="3.5"/></svg><span>Fichas ON</span></button>
       <button class="ib hot" id="f-exit" aria-label="Mostrar herramientas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
     </div>
+  <main id="wrap">
+    <canvas id="cv" aria-label="Cancha de baloncesto con fichas"></canvas>
   </main>
 </div>
 
@@ -636,7 +647,12 @@ $('undo').onclick=undo; $('f-undo').onclick=undo;
 document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo();} if(e.key==='Escape') closeSheet(); });
 
 // Pantalla limpia: esconde la barra y deja una botonera pequeña flotando
-function setFocus(on){ document.body.classList.toggle('focus',on); $('float').hidden=!on; setMode(mode); }
+function setFocus(on){
+  document.body.classList.toggle('focus',on);
+  $('float').hidden=!on;
+  setMode(mode);
+  requestAnimationFrame(layout);
+}
 $('focus').onclick=()=>setFocus(true); $('f-exit').onclick=()=>setFocus(false);
 
 // Barra al lado cuando la tableta está vertical (la cancha sobra de ancho y falta de alto)
@@ -779,6 +795,7 @@ function clearAll(){ if(!state.strokes.length) return; const b=snap(); state.str
 $('q-clear').onclick=clearAll; $('f-clear').onclick=clearAll;
 $('q-undo').onclick=undo; $('q-focus').onclick=()=>setFocus(true); $('q-more').onclick=openSheet;
 $('q-tok').onclick=()=>$('tok').onclick();
+$('f-tok').onclick=()=>$('tok').onclick();
 $('q-court').onclick=()=>$(state.full?'sz-half':'sz-full').click();
 function setPressed(el,on){ el.setAttribute('aria-pressed',on?'true':'false'); el.querySelector('b').textContent=on?'Sí':'No'; }
 function syncUI(){
@@ -793,6 +810,12 @@ function syncUI(){
    $('q-redo').disabled=!future.length; $('f-redo').disabled=!future.length;
   $('q-clear').disabled=!state.strokes.length; $('f-clear').disabled=!state.strokes.length;
   $('q-tok').classList.toggle('off',!!state.noTokens);
+  const focusToggle=$('f-tok');
+  focusToggle.classList.toggle('is-off',!!state.noTokens);
+  focusToggle.setAttribute('aria-pressed',String(!state.noTokens));
+  focusToggle.querySelector('span').textContent=state.noTokens?'Fichas OFF':'Fichas ON';
+  focusToggle.setAttribute('aria-label',state.noTokens?'Mostrar fichas':'Ocultar fichas');
+  focusToggle.title=state.noTokens?'Mostrar fichas':'Ocultar fichas';
   $('q-court').querySelector('span').textContent=state.full?'Media':'Completa';
   if(!armed){clr.textContent='Limpiar todos los trazos'; clr.classList.remove('warn');}
 }
