@@ -1,26 +1,23 @@
 {
-  "name": "ALESPI Tigers · Pizarra Táctica",
-  "short_name": "ALESPI Tigers",
-  "description": "Pizarra táctica de baloncesto para iPad y tablet, utilizable sin conexión.",
+  "name": "GT Basketball · Pizarra Táctica",
+  "short_name": "GT Basketball",
+  "description": "Pizarra táctica GT Basketball: fichas, dibujo simultáneo, guardado y respaldos.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "display_override": [
-    "fullscreen",
-    "standalone"
-  ],
   "orientation": "any",
-  "background_color": "#071526",
-  "theme_color": "#0a2949",
+  "background_color": "#0a1430",
+  "theme_color": "#0a1430",
+  "lang": "es",
   "icons": [
     {
-      "src": "./brand.svg",
+      "src": "brand.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "./icon.svg",
+      "src": "icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
