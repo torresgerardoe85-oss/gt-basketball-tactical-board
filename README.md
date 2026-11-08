@@ -38,3 +38,11 @@ Los logos secundarios se colocan en coordenadas de cancha; los de la mitad infer
 - Caché offline incrementada a versión 3.
 
 Se probó el diseño en Chromium con dimensiones de tablet horizontal, vertical y móvil; resta prueba física con Apple Pencil en Safari iPadOS.
+
+## Tres herramientas independientes (v5)
+
+- **Mover (predeterminado):** solo permite arrastrar fichas, balón y logos pequeños. Tocar o deslizar sobre un espacio libre no dibuja ni guarda trazos por accidente. Tampoco genera rastro de drible automático.
+- **Lápiz:** permite dibujar incluso encima de las fichas, sin moverlas.
+- **Ambas:** permite arrastrar fichas y dibujar en espacios libres a la vez, inclusive con Apple Pencil y dedo como contactos independientes. Si la opción de rastro de drible está activa, funciona en Ambas.
+- Los botones Mover, Lápiz y Ambas aparecen en la barra principal y en la barra del modo limpio fuera de la cancha. La última herramienta elegida se recuerda localmente en cada dispositivo.
+- No cambia fichas, posiciones, logos, jugadas, respaldo ni el funcionamiento offline. Service worker actualizado a v4.
