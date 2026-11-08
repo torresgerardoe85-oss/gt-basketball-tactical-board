@@ -753,6 +753,7 @@ $('lfile').onchange=e=>{
     if(!saveLogos()){ logos.pop(); msg.textContent='No queda espacio para más logos. Borra uno y vuelve a intentar.'; return; }
     $('lname').value=''; msg.textContent='Logo de '+name+' agregado.';
     const bf=snap(); state.logoId=id; applyLogo(); commit(bf); renderLogos();
+    $('mini-logo-status').textContent='Logo guardado. También puedes ponerlo en cualquier parte de la cancha.';
   };
   im.src=url;
 };
@@ -821,7 +822,7 @@ function syncUI(){
    catch(_){playMsg('No se pudo eliminar.');}
  };
  $('backup-export').onclick=()=>{
-   try{const pack={type:'GT-Basketball-Tactical-Backup',version:2,date:new Date().toISOString(),state:snap(),plays:readPlays(),logos};
+   try{const pack={type:'GT-Basketball-Tactical-Backup',version:3,date:new Date().toISOString(),state:snap(),plays:readPlays(),logos};
      const url=URL.createObjectURL(new Blob([JSON.stringify(pack)],{type:'application/json'}));
      const a=document.createElement('a');a.href=url;a.download='GT-Basketball-Pizarra-Respaldo.json';document.body.appendChild(a);a.click();a.remove();
      setTimeout(()=>URL.revokeObjectURL(url),5000);playMsg('Respaldo exportado. Consérvalo en Archivos o Drive.');}
@@ -845,7 +846,7 @@ function syncUI(){
      const prev=snap(), oldPlays=readPlays(), oldLogos=[...logos];
      try{
        persistPlays(data.plays);localStorage.setItem(LKEY,JSON.stringify(imported));
-       logos=imported;restoreSnapshot(data.state);hist.push(prev);future.length=0;syncUI();refreshPlays();renderLogos();playMsg('Respaldo importado correctamente.');
+       logos=imported;miniImageCache.clear();restoreSnapshot(data.state);hist.push(prev);future.length=0;syncUI();refreshPlays();renderLogos();playMsg('Respaldo importado correctamente.');
      }catch(error){
        // Restauración defensiva si el almacenamiento se llena durante la importación.
        persistPlays(oldPlays);localStorage.setItem(LKEY,JSON.stringify(oldLogos));logos=oldLogos;restoreSnapshot(prev);throw error;
