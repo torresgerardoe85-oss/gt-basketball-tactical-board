@@ -123,6 +123,10 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;displa
 .mini-item .mini-size{font-size:11px;color:var(--muted);white-space:nowrap}
 .mini-item button{border:1px solid var(--rule);border-radius:8px;background:var(--panel2);color:var(--fg);min-width:33px;min-height:35px;cursor:pointer}
 .mini-item button.remove{color:var(--accent);border-color:var(--accent)}
+.mini-item.is-locked{border-left:3px solid #39bda5}
+.mini-item button.mini-lock{background:var(--panel2);min-width:37px}
+.mini-item button.mini-lock.locked{background:#11594c;color:#d2fff3;border-color:#45bd9b}
+.mini-item button:disabled{opacity:.35;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -202,7 +206,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;displa
         <button class="btn pri" id="mini-add">+ Poner logo</button>
         <button class="btn" id="mini-visibility">Ocultar logos</button>
       </div>
-      <p class="hint">Arrastra cada logo con el dedo o Apple Pencil. Usa +, − o × para cambiar su tamaño o quitarlo.</p>
+      <p class="hint">Coloca cada logo en la cancha: al soltarlo queda <strong>fijo</strong>. Usa 🔓 Desbloquear para moverlo otra vez. Los logos que ya tenías colocados también quedan protegidos.</p>
       <div class="mini-list" id="mini-logo-list"></div>
       <div class="msg" id="mini-logo-status" role="status" aria-live="polite"></div>
     </div>
@@ -311,6 +315,8 @@ if(!Array.isArray(state.tokens)||!state.tokens.length) state.tokens=defaultToken
 if(typeof state.noTokens!=='boolean') state.noTokens=false;
 if(typeof state.showDef!=='boolean') state.showDef=true;
 if(!Array.isArray(state.miniLogos))state.miniLogos=[];
+// Los logos existentes (sin campo locked) quedan fijos automáticamente.
+state.miniLogos.forEach(p=>{if(p&&typeof p==='object'&&typeof p.locked!=='boolean')p.locked=true;});
 if(typeof state.showMiniLogos!=='boolean')state.showMiniLogos=true;
 const hist=[], future=[];
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
@@ -555,8 +561,10 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
    if(gestures.has(e.pointerId))return;
    if(!gestures.size) gestureBefore=snap();
    const [X,Y]=pos(e), canMove=mode==='move'||mode==='both';
-   const mini=canMove?hitSmallLogo(X,Y):null;
-   const t=mini?null:canMove?hitToken(X,Y):null;
+   const hitMini=canMove?hitSmallLogo(X,Y):null;
+   // Un logo fijado nunca se arrastra, ni deja mover una ficha detrás de él.
+   const mini=hitMini&&!hitMini.locked?hitMini:null;
+   const t=hitMini?null:canMove?hitToken(X,Y):null;
    let g;
    if(mini&&!([...gestures.values()].some(x=>x.type==='move-logo'&&x.logo===mini))){
      const [mx,my]=toS(mini.x,mini.y);
@@ -603,6 +611,13 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  function finishGesture(e){
    const g=gestures.get(e.pointerId);if(!g)return;
    if(g.type==='move'&&g.t.t==='b')attachBall(g.t);
+   if(g.type==='move-logo'){
+     // Una vez colocado, queda fijo hasta desbloqueo explícito en Opciones.
+     g.logo.locked=true;
+     selectedMiniLogoId=g.logo.id;
+     renderMiniLogoControls();
+     $('mini-logo-status').textContent='Logo fijado. Desbloquéalo en Opciones si necesitas moverlo.';
+   }
    if(g.cur&&g.cur.pts.length>1)state.strokes.push(g.cur);
    gestures.delete(e.pointerId);
    try{if(cv.hasPointerCapture(e.pointerId))cv.releasePointerCapture(e.pointerId)}catch(_){}
@@ -644,7 +659,7 @@ function restoreSnapshot(s){
    if(typeof state.noTokens!=='boolean')state.noTokens=false;
    if(typeof state.showDef!=='boolean')state.showDef=true;
    if(!Array.isArray(state.miniLogos))state.miniLogos=[];
-   state.miniLogos=state.miniLogos.filter(p=>p&&typeof p.id==='string'&&typeof p.logoId==='string'&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&Number.isFinite(p.size)).slice(0,15);
+   state.miniLogos=state.miniLogos.filter(p=>p&&typeof p.id==='string'&&typeof p.logoId==='string'&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&Number.isFinite(p.size)).slice(0,15).map(p=>({...p,locked:p.locked!==false}));
    if(typeof state.showMiniLogos!=='boolean')state.showMiniLogos=true;
    if(!state.miniLogos.some(p=>p.id===selectedMiniLogoId))selectedMiniLogoId=null;
    save(); applyLogo(); layout(); syncUI(); renderMiniLogoControls();
@@ -707,16 +722,22 @@ function renderMiniLogoControls(){
   const box=$('mini-logo-list');box.replaceChildren();
   state.miniLogos.forEach((entry,i)=>{
     const logo=items.find(l=>l.id===entry.logoId);
-    const row=document.createElement('div');row.className='mini-item'+(entry.id===selectedMiniLogoId?' selected':'');
-    const label=document.createElement('span');label.className='mini-name';label.textContent=(i+1)+'. '+(logo?.name||'Logo');
+    const locked=entry.locked!==false;
+    const row=document.createElement('div');row.className='mini-item'+(entry.id===selectedMiniLogoId?' selected':'')+(locked?' is-locked':'');
+    const label=document.createElement('span');label.className='mini-name';label.textContent=(i+1)+'. '+(logo?.name||'Logo')+(locked?' · Fijo':' · Movible');
     const size=document.createElement('span');size.className='mini-size';size.textContent=(Number(entry.size)||5).toFixed(1);
     row.append(label,size);
-    const button=(symbol,title,fn,cl='')=>{const el=document.createElement('button');el.textContent=symbol;el.title=title;el.setAttribute('aria-label',title);el.className=cl;el.onclick=fn;row.appendChild(el);};
+    const button=(symbol,title,fn,cl='',disabled=false)=>{const el=document.createElement('button');el.textContent=symbol;el.title=title;el.setAttribute('aria-label',title);el.className=cl;el.disabled=disabled;el.onclick=fn;row.appendChild(el);};
     const changeSize=delta=>{const before=snap();entry.size=Math.max(2.5,Math.min(10,(Number(entry.size)||5)+delta));
       const margin=entry.size/2;entry.x=clamp(entry.x,margin,W-margin);entry.y=clamp(entry.y,margin,(state.full?94:47)-margin);
       selectedMiniLogoId=entry.id;draw();commit(before);renderMiniLogoControls();};
-    button('−','Reducir logo',()=>changeSize(-1));
-    button('+','Aumentar logo',()=>changeSize(1));
+    button(locked?'🔒':'🔓',locked?'Desbloquear logo para moverlo':'Fijar logo en su posición',()=>{
+      const before=snap();entry.locked=!locked;selectedMiniLogoId=entry.id;
+      draw();commit(before);renderMiniLogoControls();
+      $('mini-logo-status').textContent=entry.locked?'Logo fijado. No se moverá al tocarlo.':'Logo desbloqueado. Ahora puedes moverlo en la cancha.';
+    },locked?'mini-lock locked':'mini-lock');
+    button('−','Reducir logo (desbloquéalo antes)',()=>changeSize(-1),'',locked);
+    button('+','Aumentar logo (desbloquéalo antes)',()=>changeSize(1),'',locked);
     button('×','Quitar logo de cancha',()=>{
       const before=snap();state.miniLogos=state.miniLogos.filter(p=>p.id!==entry.id);
       if(selectedMiniLogoId===entry.id)selectedMiniLogoId=null;draw();commit(before);renderMiniLogoControls();
@@ -731,10 +752,10 @@ $('mini-add').onclick=()=>{
   if(state.miniLogos.length>=15){$('mini-logo-status').textContent='Máximo 15 logos pequeños por jugada.';return;}
   const logoId=$('mini-logo-select').value;if(!allLogos().some(l=>l.id===logoId))return;
   const before=snap(),i=state.miniLogos.length;
-  const entry={id:'mini-'+Date.now().toString(36)+'-'+i,logoId,x:8+(i%4)*11,y:Math.min(L-8,9+Math.floor(i/4)*9),size:5};
+  const entry={id:'mini-'+Date.now().toString(36)+'-'+i,logoId,x:8+(i%4)*11,y:Math.min(L-8,9+Math.floor(i/4)*9),size:5,locked:false};
   state.miniLogos.push(entry);state.showMiniLogos=true;selectedMiniLogoId=entry.id;
   draw();commit(before);renderMiniLogoControls();
-  $('mini-logo-status').textContent='Logo añadido. Arrástralo en la cancha.';
+  $('mini-logo-status').textContent='Logo añadido. Colócalo y suéltalo para fijarlo.';
   closeSheet();
 };
 $('mini-visibility').onclick=()=>{
