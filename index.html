@@ -561,10 +561,12 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
    if(gestures.has(e.pointerId))return;
    if(!gestures.size) gestureBefore=snap();
    const [X,Y]=pos(e), canMove=mode==='move'||mode==='both';
-   const hitMini=canMove?hitSmallLogo(X,Y):null;
-   // Un logo fijado nunca se arrastra, ni deja mover una ficha detrás de él.
+   // Las fichas tienen prioridad sobre los logos: aunque queden totalmente
+   // encima de un logo fijo, el dedo o Pencil siempre puede agarrarlas.
+   const t=canMove?hitToken(X,Y):null;
+   const hitMini=canMove&&!t?hitSmallLogo(X,Y):null;
+   // Un logo bloqueado es transparente a los gestos: no captura el toque.
    const mini=hitMini&&!hitMini.locked?hitMini:null;
-   const t=hitMini?null:canMove?hitToken(X,Y):null;
    let g;
    if(mini&&!([...gestures.values()].some(x=>x.type==='move-logo'&&x.logo===mini))){
      const [mx,my]=toS(mini.x,mini.y);
