@@ -390,17 +390,19 @@ function drawCourt(){
   } else { ctx.beginPath(); ctx.arc(25,47,6,Math.PI,Math.PI*2); ctx.stroke(); }
   ctx.globalAlpha=1;
   if(showLogo()){
-    // el logo cabe dentro del círculo central (21 pies), siempre derecho en pantalla
+    // Logo central 100% opaco: no mezclar la madera ni aplicar velos/gradientes.
+    // Conserva únicamente la transparencia real que ya tenga el PNG del logo.
     const box=20*s, k=Math.min(box/LOGO.naturalWidth,box/LOGO.naturalHeight), w=LOGO.naturalWidth*k, h=LOGO.naturalHeight*k;
     const [cx,cy]=toS(25,47);
     const pw=Math.ceil(w*dpr), ph=Math.ceil(h*dpr), px=Math.round((cx-w/2)*dpr), py=Math.round((cy-h/2)*dpr);
-    const off=document.createElement('canvas'); off.width=pw; off.height=ph; const o=off.getContext('2d');
-    o.imageSmoothingQuality='high'; o.drawImage(LOGO,0,0,pw,ph);
-    o.globalCompositeOperation='source-atop'; o.globalAlpha=.2; o.drawImage(ctx.canvas,px,py,pw,ph,0,0,pw,ph);
-    o.globalAlpha=1; const g=o.createLinearGradient(0,0,pw,ph);
-    g.addColorStop(0,'rgba(255,255,255,.10)'); g.addColorStop(.5,'rgba(255,255,255,0)'); g.addColorStop(1,'rgba(0,0,0,.08)');
-    o.fillStyle=g; o.fillRect(0,0,pw,ph);
-    ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=.97; ctx.drawImage(off,px,py); ctx.globalAlpha=1;
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.globalAlpha=1;
+    ctx.globalCompositeOperation='source-over';
+    ctx.imageSmoothingEnabled=true;
+    ctx.imageSmoothingQuality='high';
+    ctx.drawImage(LOGO,px,py,pw,ph);
+    ctx.restore();
   }
 }
 function pathOf(p){
