@@ -1,5 +1,5 @@
-/* GT Basketball · Tactical Board · offline cache v7 · central logo opacity fix */
-const CACHE='gt-basketball-claude-base-v7';
+/* GT Basketball · Tactical Board · offline cache v8 · single-row tablet toolbar */
+const CACHE='gt-basketball-claude-base-v8';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./brand.svg','./icon.svg'];
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  const cache=await caches.open(CACHE);await cache.addAll(ASSETS);await self.skipWaiting();
