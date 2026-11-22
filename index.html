@@ -127,6 +127,38 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;displa
 .mini-item button.mini-lock{background:var(--panel2);min-width:37px}
 .mini-item button.mini-lock.locked{background:#11594c;color:#d2fff3;border-color:#45bd9b}
 .mini-item button:disabled{opacity:.35;cursor:not-allowed}
+
+/* Tablet compact layout · fixed single-row toolbar, maximum court height */
+:root{--gut:4px}
+.app{flex-direction:column!important;gap:3px;padding-block:3px}
+body.side .app,body.side.focus .app{flex-direction:column!important}
+.bar,body.side .bar{
+  display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;align-content:center;
+  gap:5px;width:100%;min-width:0;max-width:100%;height:51px;min-height:51px;max-height:51px;
+  padding:1px 0;flex:0 0 51px;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;white-space:nowrap;overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;touch-action:pan-x;
+}
+@media(min-width:600px){.bar{flex-wrap:nowrap;overflow-x:auto}}
+body.side .grp{flex-direction:row}
+.bar .grp{flex-direction:row;align-items:center;gap:3px;flex:0 0 auto}
+.bar .tools{padding:2px;border-radius:9px}
+.bar .tool{width:46px;min-width:46px;height:44px;min-height:44px;gap:2px;border-radius:7px;font-size:9px;letter-spacing:.015em;line-height:1.05}
+.bar .tool svg{width:19px;height:19px;flex:none}
+.bar .sw{width:26px;min-width:26px;height:26px;min-height:26px;border-width:2px}
+.bar .wd{padding:2px;border-radius:9px}
+.bar .wd button{width:28px;min-width:28px;height:42px;min-height:42px}
+.bar .act{min-width:49px;height:44px;min-height:44px;padding:0 4px;gap:2px;border-radius:8px;font-size:9px;line-height:1.05;letter-spacing:0}
+.bar .act svg{width:19px;height:19px;flex:none}
+.bar .act.clr{min-width:61px}
+.bar .grp[hidden]{display:none!important}
+.bar::-webkit-scrollbar{display:none}
+main{flex:1 1 0;min-height:0}
+@media(max-width:760px){
+ .bar,body.side .bar{gap:4px}
+ .bar .tool{width:45px;min-width:45px}
+ .bar .act{min-width:47px}
+}
 </style>
 </head>
 <body>
